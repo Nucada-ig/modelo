@@ -6,7 +6,7 @@ Inclui: formulário de cadastro, processamento do cadastro e área do restaurant
 
 from flask import Blueprint, request, render_template, redirect, url_for
 from models.Restaurante import Restaurante
-from ..dao.RestauranteDAO import RestauranteDAO
+from .dao.RestauranteDAO import RestauranteDAO
 
 # Cria o blueprint para rotas de restaurante
 restaurante_bp = Blueprint('restaurante', __name__)

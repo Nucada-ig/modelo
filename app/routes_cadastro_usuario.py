@@ -6,7 +6,7 @@ Inclui: formulário de cadastro e processamento do cadastro.
 
 from flask import Blueprint, request, render_template, redirect, url_for
 from models.Usuario import Usuario
-from ..dao.UsuarioDAO import UsuarioDAO
+from .dao.UsuarioDAO import UsuarioDAO
 
 # Cria o blueprint para rotas de usuário
 usuario_bp = Blueprint('usuario', __name__)

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, redirect, url_for
 from models.Prato import Prato
-from dao.Prato_dao import dao_Pratos
+from dao.PratoDAO import PratoDAO
 import sqlite3
 
 prato_bp = Blueprint("prato", __name__)
@@ -17,7 +17,7 @@ def novo_prato():
         request.form['nome']
     )
 
-    dao_Pratos.inserir(prato)
+    PratoDAO.inserir(prato)
 
     return redirect(url_for("usuario.usuario_pratos"))
 
@@ -51,7 +51,7 @@ def ver_prato(id):
 def alterar_status(id):
     status = request.form['status']
 
-    dao_Pratos.atualizar_status(id, status)
+    PratoDAO.atualizar_status(id, status)
 
     return redirect(url_for("usuario.usuario_pratos"))
 
@@ -60,6 +60,6 @@ def alterar_status(id):
 # Remover prato
 @prato_bp.route("/prato/remover/<int:id>", methods=["POST"])
 def remover_prato(id):
-    dao_Pratos.remover(id)
+    PratoDAO.remover(id)
     return redirect(url_for("usuario.usuario_pratos"))
 

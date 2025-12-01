@@ -6,8 +6,8 @@ Inclui: área do entregador, pedidos disponíveis e minhas entregas.
 """
 
 from flask import Blueprint, request, render_template, redirect, url_for, jsonify
-from ..dao.EntregadorDAO import EntregadorDAO
-from ..dao.PedidoDAO import PedidoDAO
+from .dao.EntregadorDAO import EntregadorDAO
+from .dao.PedidoDAO import PedidoDAO
 
 # Cria o blueprint para rotas de entregador
 entregador_bp = Blueprint('entregador', __name__)

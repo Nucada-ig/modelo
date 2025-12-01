@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, redirect, url_for
-from dao.Aplicante_dao import dao_Aplicantes
-from dao.Aprovacao_dao import dao_Aprovacao
+from dao.AplicantesDAO import AplicanteDAO
 import sqlite3
 
 aprovacao_bp = Blueprint("aprovacao", __name__)
@@ -22,9 +21,9 @@ def aprovar(id):
 
     tipo_destino = request.form['tipo']  # entregador, atendente, gerente
 
-    aplicante = dao_Aplicantes.buscar(id)
+    aplicante = AplicanteDAO.buscar(id)
 
-    dao_Aprovacao.aprovar(aplicante, tipo_destino)
+    AplicanteDAO.aprovar(aplicante, tipo_destino)
 
     return redirect(url_for("usuario.usuario_aprovacao"))
 
@@ -36,6 +35,6 @@ def recusar(id):
 
     justificativa = request.form.get('motivo', '')  # se quiser usar
 
-    dao_Aplicantes.remover(id)
+    AplicanteDAO.remover(id)
 
     return redirect(url_for("usuario.usuario_aprovacao"))

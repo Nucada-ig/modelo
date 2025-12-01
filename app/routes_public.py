@@ -7,9 +7,9 @@ Inclui: página inicial, login, escolha de tipo de cadastro e autenticação.
 """
 
 from flask import Blueprint, request, render_template, redirect, url_for
-from ..dao.RestauranteDAO import RestauranteDAO
-from ..dao.UsuarioDAO import UsuarioDAO
-from ..dao.EntregadorDAO import EntregadorDAO
+from .dao.RestauranteDAO import RestauranteDAO
+from .dao.UsuarioDAO import UsuarioDAO
+from .dao.EntregadorDAO import EntregadorDAO
 
 # Cria o blueprint para rotas públicas
 # 'public' é o nome do blueprint
