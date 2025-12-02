@@ -1,14 +1,9 @@
-from flask import Blueprint, request, jsonify, redirect, url_for
-from .models.Prato import Prato
-from .dao.PratoDAO import PratoDAO
-import sqlite3
-
-prato_bp = Blueprint("pratos", __name__)
 from flask import Blueprint, request, jsonify, redirect, url_for, render_template
-from models.prato import Prato
-from dao.PratoDAO import PratoDAO
+from .models.prato import Prato
+from .dao.PratoDAO import PratoDAO
 from werkzeug.utils import secure_filename
 import os
+import sqlite3
 
 prato_bp = Blueprint("prato", __name__)
 prato_dao = PratoDAO()
@@ -80,7 +75,7 @@ def ver_prato(id):
 # Listar todos os pratos
 @prato_bp.route("/listar_pratos", methods=["GET"])
 def listar_pratos():
-    conn = sqlite3.connect("pratos.db")
+    conn = sqlite3.connect("app/database/pedidos.db")
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM pratos")
     pratos = cursor.fetchall()

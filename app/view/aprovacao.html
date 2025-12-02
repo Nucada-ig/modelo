@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro Enviado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script> window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        accent: '#475569',
+                        'gray-50': '#f8fafc',
+                        'gray-100': '#f1f5f9',
+                        'gray-200': '#e2e8f0',
+                        'gray-300': '#cbd5e1',
+                        'gray-400': '#94a3b8',
+                        'gray-500': '#64748b',
+                        'gray-600': '#475569',
+                        'gray-700': '#334155',
+                        'gray-800': '#1e293b',
+                        'gray-900': '#0f172a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>::-webkit-scrollbar { display: none;}</style>
+</head>
+<body class="font-inter bg-gray-50 min-h-screen">
+
+<header id="header" class="bg-white border-b border-gray-200">
+    <div class="px-4 py-4">
+        <div class="flex items-center justify-center">
+            <div class="text-center">
+                <h1 class="text-lg font-semibold text-gray-900">Cadastro Enviado</h1>
+                <p class="text-xs text-gray-500">Aguarde a aprovação</p>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main id="success-main" class="px-4 py-8 flex flex-col items-center justify-center">
+    <div id="success-icon" class="mb-8">
+        <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center">
+            <i class="fa-solid fa-check text-green-600 text-4xl"></i>
+        </div>
+    </div>
+
+    <div id="success-content" class="text-center mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Cadastro Enviado com Sucesso!</h2>
+        <p class="text-gray-600 text-base leading-relaxed mb-6 px-4">
+            Seu cadastro foi enviado para análise e aguarda aprovação do gerente do restaurante.
+        </p>
+    </div>
+
+    <div id="info-card" class="w-full bg-white rounded-2xl p-6 mb-8 border border-gray-200">
+        <div class="flex items-start mb-4">
+            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mr-3 flex-shrink-0">
+                <i class="fa-solid fa-clock text-blue-600 text-lg"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900 mb-1">Próximos Passos</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">
+                    Você receberá uma notificação por e-mail assim que sua conta for aprovada pelo gerente.
+                </p>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-100 pt-4">
+            <div class="space-y-3">
+                <div class="flex items-center">
+                    <div class="w-2 h-2 bg-accent rounded-full mr-3"></div>
+                    <span class="text-sm text-gray-700">Tempo estimado: 24-48 horas</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-2 h-2 bg-accent rounded-full mr-3"></div>
+                    <span class="text-sm text-gray-700">Verificação dos dados fornecidos</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-2 h-2 bg-accent rounded-full mr-3"></div>
+                    <span class="text-sm text-gray-700">Confirmação por e-mail após aprovação</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="contact-info" class="w-full bg-gray-100 rounded-2xl p-6 mb-8">
+        <div class="flex items-start">
+            <div class="w-10 h-10 bg-gray-200 rounded-xl flex items-center justify-center mr-3 flex-shrink-0">
+                <i class="fa-solid fa-question-circle text-gray-600 text-lg"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900 mb-1">Precisa de Ajuda?</h3>
+                <p class="text-sm text-gray-600 mb-3">
+                    Se tiver dúvidas ou não receber resposta em até 48 horas, entre em contato conosco.
+                </p>
+                <div class="space-y-2">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-phone text-gray-500 text-xs mr-2"></i>
+                        <span class="text-sm text-gray-700">(11) 9999-9999</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-envelope text-gray-500 text-xs mr-2"></i>
+                        <span class="text-sm text-gray-700">suporte@restaurante.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="actions-section" class="w-full space-y-4">
+        <button id="back-to-login" class="w-full bg-accent text-white py-4 rounded-xl font-semibold text-base shadow-sm hover:bg-gray-700 transition-colors">
+            Voltar ao Login
+        </button>
+        
+        <button id="new-registration" class="w-full bg-white text-accent border-2 border-accent py-4 rounded-xl font-semibold text-base hover:bg-gray-50 transition-colors">
+            Fazer Novo Cadastro
+        </button>
+    </div>
+
+    <div id="status-note" class="text-center mt-8">
+        <p class="text-xs text-gray-500 px-4 leading-relaxed">
+            Mantenha seus dados de contato atualizados para receber as notificações de aprovação
+        </p>
+    </div>
+</main>
+
+<script>
+window.addEventListener('load', function() {
+    const backToLoginBtn = document.getElementById('back-to-login');
+    const newRegistrationBtn = document.getElementById('new-registration');
+    
+    // Redireciona para a página de login
+    backToLoginBtn.addEventListener('click', function() {
+        window.location.href = '/';  // Rota de login
+    });
+    
+    // Redireciona para a página de novo cadastro
+    newRegistrationBtn.addEventListener('click', function() {
+        // Pode mostrar modal de escolha entre entregador/usuario
+        // ou redirecionar para uma página específica
+        window.location.href = '/cadastro-entregador';  // ou '/cadastro-usuario'
+    });
+});
+</script>
+
+</body>
+</html>

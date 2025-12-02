@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil do Usuário</title>
+    <title>Perfil do Entregador</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script> window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
@@ -21,18 +21,14 @@
     <div class="px-4 py-3">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500">
-                    <i class="fa-solid fa-user text-white text-lg"></i>
-                </div>
+                <a href="{{ url_for('entregador.area_entregador', username=entregador.username) }}" class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-arrow-left text-gray-600"></i>
+                </a>
                 <div>
-                    <h1 class="text-lg font-semibold text-gray-900">Perfil do Usuário</h1>
+                    <h1 class="text-lg font-semibold text-gray-900">Perfil do Entregador</h1>
                     <p class="text-xs text-gray-500">Informações da conta</p>
                 </div>
             </div>
-
-            <a href="{{ url_for('dashboard.index') }}" class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                <i class="fa-solid fa-arrow-left text-gray-600"></i>
-            </a>
         </div>
     </div>
 </header>
@@ -43,16 +39,16 @@
     <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 mb-6">
         <div class="flex items-center space-x-4">
             <div class="w-16 h-16 bg-gray-200 rounded-xl flex items-center justify-center">
-                <i class="fa-solid fa-user text-gray-600 text-2xl"></i>
+                <i class="fa-solid fa-truck text-gray-600 text-2xl"></i>
             </div>
             <div>
-                <h2 class="text-xl font-semibold text-gray-900">{{ usuario.nome }}</h2>
-                <p class="text-sm text-gray-500">@{{ usuario.username }}</p>
+                <h2 class="text-xl font-semibold text-gray-900">{{ entregador.nome }}</h2>
+                <p class="text-sm text-gray-500">@{{ entregador.username }}</p>
             </div>
         </div>
     </div>
 
-    <!-- INFORMAÇÕES DO USUÁRIO -->
+    <!-- INFORMAÇÕES DO ENTREGADOR -->
     <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 space-y-4">
         <h3 class="text-lg font-semibold text-gray-900 mb-3">Informações pessoais</h3>
 
@@ -65,7 +61,7 @@
                 </div>
                 <div class="ml-3">
                     <p class="text-sm text-gray-500">Email</p>
-                    <p class="text-sm font-medium text-gray-900">{{ usuario.email }}</p>
+                    <p class="text-sm font-medium text-gray-900">{{ entregador.email }}</p>
                 </div>
             </div>
 
@@ -76,18 +72,29 @@
                 </div>
                 <div class="ml-3">
                     <p class="text-sm text-gray-500">Telefone</p>
-                    <p class="text-sm font-medium text-gray-900">{{ usuario.telefone }}</p>
+                    <p class="text-sm font-medium text-gray-900">{{ entregador.telefone }}</p>
                 </div>
             </div>
 
-            <!-- TIPO -->
+            <!-- CPF -->
             <div class="flex items-center p-3 bg-gray-50 rounded-xl">
                 <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                     <i class="fa-solid fa-id-card text-purple-600"></i>
                 </div>
                 <div class="ml-3">
-                    <p class="text-sm text-gray-500">Tipo de usuário</p>
-                    <p class="text-sm font-medium text-gray-900 capitalize">{{ usuario.tipo }}</p>
+                    <p class="text-sm text-gray-500">CPF</p>
+                    <p class="text-sm font-medium text-gray-900">{{ entregador.cpf }}</p>
+                </div>
+            </div>
+
+            <!-- STATUS -->
+            <div class="flex items-center p-3 bg-gray-50 rounded-xl">
+                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <i class="fa-solid fa-circle text-yellow-600"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-gray-500">Status</p>
+                    <p class="text-sm font-medium text-gray-900 capitalize">{{ entregador.status }}</p>
                 </div>
             </div>
 
@@ -97,7 +104,7 @@
 
     <!-- INFORMAÇÕES DO RESTAURANTE -->
     <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 space-y-4 mt-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">Restaurante vinculado</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">Restaurante afiliado</h3>
 
         {% if restaurante %}
         <div class="space-y-3">
@@ -114,21 +121,21 @@
 
             <div class="flex items-center p-3 bg-gray-50 rounded-xl">
                 <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <i class="fa-solid fa-align-left text-yellow-600"></i>
+                    <i class="fa-solid fa-envelope text-yellow-600"></i>
                 </div>
                 <div class="ml-3">
-                    <p class="text-sm text-gray-500">Descrição</p>
-                    <p class="text-sm font-medium text-gray-900">{{ restaurante.descricao }}</p>
+                    <p class="text-sm text-gray-500">Email</p>
+                    <p class="text-sm font-medium text-gray-900">{{ restaurante.email }}</p>
                 </div>
             </div>
 
             <div class="flex items-center p-3 bg-gray-50 rounded-xl">
                 <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <i class="fa-solid fa-tags text-blue-600"></i>
+                    <i class="fa-solid fa-phone text-blue-600"></i>
                 </div>
                 <div class="ml-3">
-                    <p class="text-sm text-gray-500">Categoria</p>
-                    <p class="text-sm font-medium text-gray-900">{{ restaurante.categoria }}</p>
+                    <p class="text-sm text-gray-500">Telefone</p>
+                    <p class="text-sm font-medium text-gray-900">{{ restaurante.telefone }}</p>
                 </div>
             </div>
 
@@ -149,39 +156,6 @@
     </div>
 
 </main>
-
-
-<!-- BARRA INFERIOR DE AÇÕES -->
-<nav class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 py-2 px-6">
-    <div class="flex justify-between items-center text-gray-600">
-
-        <a href="{{ url_for('perfil.perfil_usuario') }}" class="flex flex-col items-center">
-            <i class="fa-solid fa-user text-xl"></i>
-            <span class="text-xs">Perfil</span>
-        </a>
-
-        <a href="{{ url_for('pedidos.listar_pedidos') }}" class="flex flex-col items-center">
-            <i class="fa-solid fa-receipt text-xl"></i>
-            <span class="text-xs">Pedidos</span>
-        </a>
-
-        <a href="{{ url_for('prato.listar_pratos') }}" class="flex flex-col items-center">
-            <i class="fa-solid fa-bowl-food text-xl"></i>
-            <span class="text-xs">Pratos</span>
-        </a>
-
-        <a href="#" class="flex flex-col items-center opacity-50 cursor-not-allowed">
-            <i class="fa-solid fa-motorcycle text-xl"></i>
-            <span class="text-xs">Entregadores</span>
-        </a>
-
-        <a href="{{ url_for('aprovacao.painel_aprovacao') }}" class="flex flex-col items-center">
-            <i class="fa-solid fa-user-check text-xl"></i>
-            <span class="text-xs">Aprovação</span>
-        </a>
-
-    </div>
-</nav>
 
 </body>
 </html>

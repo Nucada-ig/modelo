@@ -1,4 +1,4 @@
-from .Prato import Prato
+from .prato import Prato
 from .Endereco import Endereco
 class Pedido:
     def __init__(self, numero, preco, observacao_p, forma_de_pagamento, status):

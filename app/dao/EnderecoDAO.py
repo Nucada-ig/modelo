@@ -1,7 +1,7 @@
 import sqlite3
 
 class EnderecoDAO:
-    def __init__(self, db_path='app/database/enderecos.db'):
+    def __init__(self, db_path='app/database/app.db'):
         self.db_path = db_path
         self._criar_tabela()
 

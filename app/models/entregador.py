@@ -65,12 +65,13 @@ class Usuario_class:
         self.__tipo = tipo
 
 class Entregador(Usuario_class):
-    def __init__(self, usuario_id, nome, email, senha, CPF, telefone, tipo, veiculo, placa, status='ativo'):
+    def __init__(self, usuario_id, nome, email, senha, CPF, telefone, tipo, veiculo, placa, status='ativo', restaurante_id=None):
         super().__init__(nome, CPF, email, telefone, None, senha, tipo)
         self.__usuario_id = usuario_id
         self.__veiculo = veiculo
         self.__placa = placa
         self.__status = status
+        self.__restaurante_id = restaurante_id
 
     @property
     def usuario_id(self):
@@ -102,3 +103,7 @@ class Entregador(Usuario_class):
             self.__status = status
         else:
             raise ValueError("Status inválido.")
+
+    @property
+    def restaurante_id(self):
+        return self.__restaurante_id

@@ -1,3 +1,4 @@
+import logging
 from flask import Blueprint, render_template, session, redirect, url_for, abort, request
 from .dao.UsuarioDAO import UsuarioDAO
 from .dao.RestauranteDAO import RestauranteDAO
@@ -16,7 +17,7 @@ def perfil_usuario(id_usuario):
     #  Verifica login
     if "user_id" not in session:
         return redirect(url_for("public.login"))
-    
+
     #  Garante que só pode ver o próprio perfil
     if session["user_id"] != id_usuario:
         abort(403)  # acesso proibido
@@ -26,22 +27,23 @@ def perfil_usuario(id_usuario):
     if not usuario:
         abort(404)
 
-    # usuario = (id, nome, email, telefone, username, senha, tipo, restaurante_id)
+    # usuario = (id, nome, cpf, email, telefone, username, senha, tipo, restaurante_id)
     usuario_dict = {
         "id": usuario[0],
         "nome": usuario[1],
-        "email": usuario[2],
-        "telefone": usuario[3],
-        "username": usuario[4],
-        "senha": usuario[5],
-        "tipo": usuario[6],
-        "restaurante_id": usuario[7]
+        "cpf": usuario[2],
+        "email": usuario[3],
+        "telefone": usuario[4],
+        "username": usuario[5],
+        "senha": usuario[6],
+        "tipo": usuario[7],
+        "restaurante_id": usuario[8]
     }
 
     # Pega informações do restaurante
     restaurante_dict = None
-    if usuario[7]:
-        restaurante = restaurante_dao.procurar_um(usuario[7])
+    if usuario[8]:
+        restaurante = restaurante_dao.procurar_um(usuario[8])
         if restaurante:
             restaurante_dict = {
                 "id": restaurante[0],

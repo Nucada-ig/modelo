@@ -1,8 +1,10 @@
 import sqlite3
+import os
 
 class EntregadorDAO:
     def __init__(self, db_path='app/database/app.db'):
         self.db_path = db_path
+        print(f"EntregadorDAO using db_path: {self.db_path}")
         self._criar_tabela()
 
     def _conectar(self):
@@ -50,30 +52,31 @@ class EntregadorDAO:
 
     # ========== MÉTODO CORRIGIDO ==========
     def buscar_por_username(self, username):
-        
+        print(f"Debug: Buscando entregador por username: {username}")
         conn = self._conectar()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT 
+            SELECT
                 e.id,
                 e.usuario_id,
                 e.veiculo,
                 e.placa,
                 e.status,
-                e.latitude,
-                e.longitude,
+                e.restaurante_id,
                 u.nome,
+                u.cpf,
                 u.username,
                 u.email,
                 u.telefone,
-                u.cpf
+                u.senha
             FROM entregadores e
             INNER JOIN usuarios u ON e.usuario_id = u.id
             WHERE u.username = ?
         """, (username,))
         dado = cursor.fetchone()
+        print(f"Debug: Resultado da query: {dado}")
         conn.close()
-        
+
         # Retorna um dicionário para facilitar o acesso no template
         if dado:
             return {
@@ -82,13 +85,13 @@ class EntregadorDAO:
                 'veiculo': dado[2],
                 'placa': dado[3],
                 'status': dado[4],
-                'latitude': dado[5],
-                'longitude': dado[6],
-                'nome': dado[7],
+                'restaurante_id': dado[5],
+                'nome': dado[6],
+                'cpf': dado[7],
                 'username': dado[8],
                 'email': dado[9],
                 'telefone': dado[10],
-                'cpf': dado[11]
+                'password': dado[11]
             }
         return None
 
@@ -104,19 +107,17 @@ class EntregadorDAO:
         conn = self._conectar()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT 
+            SELECT
                 e.id,
                 e.usuario_id,
                 e.veiculo,
                 e.placa,
                 e.status,
-                e.latitude,
-                e.longitude,
                 u.nome,
+                u.cpf,
                 u.username,
                 u.email,
-                u.telefone,
-                u.cpf
+                u.telefone
             FROM entregadores e
             INNER JOIN usuarios u ON e.usuario_id = u.id
             WHERE e.id = ?
@@ -131,13 +132,11 @@ class EntregadorDAO:
                 'veiculo': dado[2],
                 'placa': dado[3],
                 'status': dado[4],
-                'latitude': dado[5],
-                'longitude': dado[6],
-                'nome': dado[7],
-                'username': dado[8],
-                'email': dado[9],
-                'telefone': dado[10],
-                'cpf': dado[11]
+                'nome': dado[5],
+                'cpf': dado[6],
+                'username': dado[7],
+                'email': dado[8],
+                'telefone': dado[9]
             }
         return None
 
@@ -148,15 +147,14 @@ class EntregadorDAO:
         conn = self._conectar()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT 
+            SELECT
                 e.id,
                 e.usuario_id,
                 e.veiculo,
                 e.placa,
                 e.status,
-                e.latitude,
-                e.longitude,
                 u.nome,
+                u.cpf,
                 u.username,
                 u.email,
                 u.telefone
@@ -175,12 +173,11 @@ class EntregadorDAO:
                 'veiculo': dado[2],
                 'placa': dado[3],
                 'status': dado[4],
-                'latitude': dado[5],
-                'longitude': dado[6],
-                'nome': dado[7],
-                'username': dado[8],
-                'email': dado[9],
-                'telefone': dado[10]
+                'nome': dado[5],
+                'cpf': dado[6],
+                'username': dado[7],
+                'email': dado[8],
+                'telefone': dado[9]
             })
         return entregadores
 
@@ -228,31 +225,32 @@ class EntregadorDAO:
         conn.close()
         return sucesso
 
-    def buscar_disponiveis(self):
+    def procurar_todos_por_restaurante(self, restaurante_id):
         """
-        Retorna entregadores disponíveis (status = 'disponível').
+        Busca todos os entregadores de um restaurante específico.
         """
         conn = self._conectar()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT 
+            SELECT
                 e.id,
                 e.usuario_id,
                 e.veiculo,
                 e.placa,
                 e.status,
-                e.latitude,
-                e.longitude,
                 u.nome,
+                u.cpf,
                 u.username,
+                u.email,
                 u.telefone
             FROM entregadores e
             INNER JOIN usuarios u ON e.usuario_id = u.id
-            WHERE e.status = 'disponível'
-        """)
+            WHERE e.restaurante_id = ?
+        """, (restaurante_id,))
         dados = cursor.fetchall()
         conn.close()
-        
+
+        # Converte para lista de dicionários
         entregadores = []
         for dado in dados:
             entregadores.append({
@@ -261,11 +259,50 @@ class EntregadorDAO:
                 'veiculo': dado[2],
                 'placa': dado[3],
                 'status': dado[4],
-                'latitude': dado[5],
-                'longitude': dado[6],
-                'nome': dado[7],
-                'username': dado[8],
+                'nome': dado[5],
+                'cpf': dado[6],
+                'username': dado[7],
+                'email': dado[8],
                 'telefone': dado[9]
+            })
+        return entregadores
+
+    def buscar_disponiveis(self):
+        """
+        Retorna entregadores disponíveis (status = 'disponível').
+        """
+        conn = self._conectar()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT
+                e.id,
+                e.usuario_id,
+                e.veiculo,
+                e.placa,
+                e.status,
+                u.nome,
+                u.cpf,
+                u.username,
+                u.telefone
+            FROM entregadores e
+            INNER JOIN usuarios u ON e.usuario_id = u.id
+            WHERE e.status = 'disponível'
+        """)
+        dados = cursor.fetchall()
+        conn.close()
+
+        entregadores = []
+        for dado in dados:
+            entregadores.append({
+                'id': dado[0],
+                'usuario_id': dado[1],
+                'veiculo': dado[2],
+                'placa': dado[3],
+                'status': dado[4],
+                'nome': dado[5],
+                'cpf': dado[6],
+                'username': dado[7],
+                'telefone': dado[8]
             })
         return entregadores
 

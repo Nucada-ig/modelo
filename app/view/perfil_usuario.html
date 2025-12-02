@@ -179,6 +179,7 @@
                 </div>
             </div>
 
+            {% if usuario.tipo in ['gerente', 'restaurante'] %}
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                 <div class="flex items-center">
                     <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -193,6 +194,7 @@
                     <i class="fa-solid fa-eye"></i> Mostrar
                 </button>
             </div>
+            {% endif %}
 
         </div>
         {% else %}
@@ -212,25 +214,21 @@
             <span class="text-xs">Perfil</span>
         </a>
 
-        <a href="{{ url_for('pedidos.listar_pedidos') }}" class="flex flex-col items-center">
+        <a href="{{ url_for('usuario.usuario_pedidos_restaurante', id=usuario.id) }}" class="flex flex-col items-center">
             <i class="fa-solid fa-receipt text-xl"></i>
             <span class="text-xs">Pedidos</span>
         </a>
 
-        <a href="{{ url_for('pratos.listar_pratos') }}" class="flex flex-col items-center">
+        <a href="{{ url_for('usuario.usuario_pratos_restaurante', id=usuario.id) }}" class="flex flex-col items-center">
             <i class="fa-solid fa-bowl-food text-xl"></i>
             <span class="text-xs">Pratos</span>
         </a>
 
-        <a href="{{ url_for('entregadores.listar_entregadores') }}" class="flex flex-col items-center">
+        <a href="{{ url_for('usuario.usuario_entregadores_restaurante', id=usuario.id) }}" class="flex flex-col items-center">
             <i class="fa-solid fa-motorcycle text-xl"></i>
             <span class="text-xs">Entregadores</span>
         </a>
 
-        <a href="{{ url_for('aprovacao.painel_aprovacao') }}" class="flex flex-col items-center">
-            <i class="fa-solid fa-user-check text-xl"></i>
-            <span class="text-xs">Aprovação</span>
-        </a>
 
     </div>
 </nav>

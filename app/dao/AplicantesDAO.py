@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime
 
 class AplicanteDAO:
-    def __init__(self, db_path='app/database/aplicantes.db'):
+    def __init__(self, db_path='app/database/app.db'):
         self.db_path = db_path
         self._criar_tabela()
 

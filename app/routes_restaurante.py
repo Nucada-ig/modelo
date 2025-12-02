@@ -4,6 +4,7 @@ Rotas relacionadas aos restaurantes.
 Inclui: formulário de cadastro, processamento do cadastro e área do restaurante.
 """
 
+import logging
 from flask import Blueprint, request, render_template, redirect, url_for
 from app.models.restaurante import Restaurante
 from .dao.RestauranteDAO import RestauranteDAO
@@ -32,13 +33,13 @@ def cadastro_restaurante():
 def cadastrar_restaurante():
     """
     Rota para processar o cadastro do restaurante (POST).
-    
+
     Fluxo:
     1. Recebe dados do formulário (incluindo dados do responsável).
     2. Cria e Insere o objeto Usuario (Responsável do Restaurante, tipo='restaurante').
     3. Cria e Insere o objeto Restaurante.
     4. Redireciona para página de "aguardando aprovação".
-    
+
     Returns:
         Redirect para a rota 'public.aguardando_aprovacao'
     """
@@ -50,7 +51,7 @@ def cadastrar_restaurante():
     telefone_user = request.form['telefone_responsavel']
     username_user = request.form['username']
     password_user = request.form['password']
-    
+
     # Dados do Restaurante
     nome_restaurante = request.form['nome_restaurante'] # Variável ajustada
     cnpj = request.form['cnpj']
@@ -68,8 +69,13 @@ def cadastrar_restaurante():
         nome_responsavel=nome_user, # Usa o nome do responsável recém-cadastrado
         codigo_unico=codigo_unico if codigo_unico else None
     )
-    restaurante_dao.inserir(restaurante)
-    restaurante_id = restaurante_dao.procurar_por_nome(nome_restaurante)[0][0] # Pega o ID do restaurante recém-inserido
+    try:
+        restaurante_id = restaurante_dao.inserir(restaurante)
+    except Exception as e:
+        logging.error(f"Failed to insert restaurant: {e}")
+        # If restaurant insertion fails, don't create the user
+        return redirect(url_for('public.aguardando_aprovacao'))  # Or show error, but for now redirect
+
     usuario = Usuario(
         nome=nome_user,
         cpf=cpf_user,
@@ -77,7 +83,7 @@ def cadastrar_restaurante():
         telefone=telefone_user,
         username=username_user,
         senha=password_user,
-        tipo='restaurante', 
+        tipo='restaurante',
         restaurante_id= restaurante_id
     )
     usuario_dao.inserir(usuario)

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos do Restaurante</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script> window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+
+<body class="font-inter bg-gray-50">
+
+<header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="px-4 py-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500">
+                    <i class="fa-solid fa-receipt text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-semibold text-gray-900">Pedidos do Restaurante</h1>
+                    <p class="text-xs text-gray-500">Gerencie os pedidos</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</header>
+
+<main class="px-4 py-6 pb-32">
+
+    {% if pedidos %}
+    <div class="space-y-4">
+        {% for pedido in pedidos %}
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-shopping-bag text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Pedido #{{ pedido[0] }}</h3>
+                        <p class="text-sm text-gray-500">{{ pedido[8] }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-bold text-gray-900">R$ {{ "%.2f"|format(pedido[5]) }}</p>
+                    <span class="px-2 py-1 text-xs rounded-full
+                        {% if pedido[7] == 'pendente' %}bg-yellow-100 text-yellow-800
+                        {% elif pedido[7] == 'confirmado' %}bg-blue-100 text-blue-800
+                        {% elif pedido[7] == 'com_entregador' %}bg-purple-100 text-purple-800
+                        {% elif pedido[7] == 'em_entrega' %}bg-orange-100 text-orange-800
+                        {% elif pedido[7] == 'entregue' %}bg-green-100 text-green-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ pedido[7] }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex items-center p-2 bg-gray-50 rounded-xl">
+                    <i class="fa-solid fa-user text-gray-500 mr-3"></i>
+                    <span class="text-sm text-gray-700">Cliente: {{ pedido[12] if pedido[12] else 'N/A' }}</span>
+                </div>
+                <div class="flex items-center p-2 bg-gray-50 rounded-xl">
+                    <i class="fa-solid fa-map-marker-alt text-gray-500 mr-3"></i>
+                    <span class="text-sm text-gray-700">Endereço: {{ pedido[13] if pedido[13] else 'N/A' }}</span>
+                </div>
+                <div class="flex items-center p-2 bg-gray-50 rounded-xl">
+                    <i class="fa-solid fa-calendar text-gray-500 mr-3"></i>
+                    <span class="text-sm text-gray-700">Data: {{ pedido[8] if pedido[8] else 'N/A' }}</span>
+                </div>
+                <div class="flex items-center p-2 bg-gray-50 rounded-xl">
+                    <i class="fa-solid fa-utensils text-gray-500 mr-3"></i>
+                    <span class="text-sm text-gray-700">Pratos: {{ pedido[14] }}</span>
+                </div>
+            </div>
+
+            <!-- Ações do pedido -->
+            <div class="mt-4 flex flex-wrap gap-2">
+                {% if pedido[7] == 'pendente' %}
+                <form action="{{ url_for('usuario.atualizar_status_pedido', id=usuario.id, pedido_id=pedido[0]) }}" method="POST" class="inline">
+                    <input type="hidden" name="status" value="confirmado">
+                    <button type="submit" class="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 transition-colors">
+                        Confirmar Pedido
+                    </button>
+                </form>
+                <form action="{{ url_for('usuario.atualizar_status_pedido', id=usuario.id, pedido_id=pedido[0]) }}" method="POST" class="inline">
+                    <input type="hidden" name="status" value="aguardando_entregador">
+                    <button type="submit" class="bg-green-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-600 transition-colors">
+                        Disponibilizar para Entrega
+                    </button>
+                </form>
+                {% elif pedido[7] == 'confirmado' %}
+                <form action="{{ url_for('usuario.atualizar_status_pedido', id=usuario.id, pedido_id=pedido[0]) }}" method="POST" class="inline">
+                    <input type="hidden" name="status" value="aguardando_entregador">
+                    <button type="submit" class="bg-green-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-600 transition-colors">
+                        Disponibilizar para Entrega
+                    </button>
+                </form>
+                {% elif pedido[7] == 'aguardando_entregador' %}
+                <span class="text-sm text-gray-500">Aguardando entregador aceitar...</span>
+                {% elif pedido[7] == 'com_entregador' %}
+                <span class="text-sm text-purple-600">Com entregador</span>
+                {% elif pedido[7] == 'em_entrega' %}
+                <span class="text-sm text-orange-600">Em entrega</span>
+                {% elif pedido[7] == 'entregue' %}
+                <span class="text-sm text-green-600">Entregue</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fa-solid fa-receipt text-gray-400 text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Nenhum pedido encontrado</h3>
+        <p class="text-gray-500">Não há pedidos registrados para este restaurante.</p>
+    </div>
+    {% endif %}
+
+    <!-- Botão para adicionar pedido -->
+    <div class="flex justify-center mt-6">
+        <button onclick="openModal()" class="bg-blue-500 text-white px-6 py-3 rounded-xl hover:bg-blue-600 flex items-center space-x-2">
+            <i class="fa-solid fa-plus"></i>
+            <span>Adicionar Pedido</span>
+        </button>
+    </div>
+
+</main>
+
+<!-- BARRA INFERIOR DE AÇÕES -->
+<nav class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 py-2 px-6">
+    <div class="flex justify-between items-center text-gray-600">
+
+        <a href="{{ url_for('perfil.perfil_usuario', id_usuario=usuario.id) }}" class="flex flex-col items-center">
+            <i class="fa-solid fa-user text-xl"></i>
+            <span class="text-xs">Perfil</span>
+        </a>
+
+        <a href="{{ url_for('usuario.usuario_pedidos_restaurante', id=usuario.id) }}" class="flex flex-col items-center text-blue-600">
+            <i class="fa-solid fa-receipt text-xl"></i>
+            <span class="text-xs">Pedidos</span>
+        </a>
+
+        <a href="{{ url_for('usuario.usuario_pratos_restaurante', id=usuario.id) }}" class="flex flex-col items-center">
+            <i class="fa-solid fa-bowl-food text-xl"></i>
+            <span class="text-xs">Pratos</span>
+        </a>
+
+        <a href="{{ url_for('usuario.usuario_entregadores_restaurante', id=usuario.id) }}" class="flex flex-col items-center">
+            <i class="fa-solid fa-motorcycle text-xl"></i>
+            <span class="text-xs">Entregadores</span>
+        </a>
+
+
+    </div>
+</nav>
+
+<!-- Modal para adicionar pedido -->
+<div id="addOrderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-2xl p-6 w-11/12 max-w-md">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Adicionar Novo Pedido</h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        <form action="{{ url_for('usuario.novo_pedido_restaurante', id=usuario.id) }}" method="POST">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nome do Cliente</label>
+                    <input type="text" name="nome_cliente" required class="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Endereço</label>
+                    <input type="text" name="endereco" required class="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">IDs dos Pratos (separados por vírgula)</label>
+                    <input type="text" name="pratos_ids" class="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Preço Total</label>
+                    <input type="number" step="0.01" name="preco_total" required class="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Forma de Pagamento</label>
+                    <select name="forma_pagamento" required class="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="cartão de crédito">Cartão de Crédito</option>
+                        <option value="cartão de débito">Cartão de Débito</option>
+                        <option value="pix">PIX</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50">Cancelar</button>
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600">Adicionar Pedido</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModal() {
+    document.getElementById('addOrderModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('addOrderModal').classList.add('hidden');
+}
+</script>
+
+</body>
+</html>

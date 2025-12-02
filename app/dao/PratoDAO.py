@@ -1,7 +1,7 @@
 import sqlite3
 
 class PratoDAO:
-    def __init__(self, db_path='app/database/pratos.db'):
+    def __init__(self, db_path='app/database/pedidos.db'):
         self.db_path = db_path
         self._criar_tabela()
 
@@ -24,8 +24,7 @@ class PratoDAO:
                 disponivel INTEGER DEFAULT 1,
                 tempo_preparo INTEGER,
                 destaque INTEGER DEFAULT 0,
-                imagem TEXT,
-                FOREIGN KEY (restaurante_id) REFERENCES restaurantes(id)
+                imagem TEXT
             );
         """)
         conn.commit()

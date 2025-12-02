@@ -3,18 +3,21 @@ routes_entregador.py
 Rotas relacionadas aos entregadores.
 """
 
-from flask import Blueprint, request, render_template, redirect, url_for, jsonify
+from flask import Blueprint, request, render_template, redirect, url_for, jsonify, session, abort
 from app.dao.EntregadorDAO import EntregadorDAO
 from app.dao.PedidoDAO import PedidoDAO
+from app.dao.UsuarioDAO import UsuarioDAO
+from app.dao.RestauranteDAO import RestauranteDAO
 import sqlite3
 
-entregador_bp = Blueprint("entregadores", __name__)
 # Cria o blueprint
 entregador_bp = Blueprint('entregador', __name__)
 
 # Instancia os DAOs
 entregador_dao = EntregadorDAO()
 pedido_dao = PedidoDAO()
+usuario_dao = UsuarioDAO()
+restaurante_dao = RestauranteDAO()
 
 
 @entregador_bp.route("/api/entregador/<int:id>", methods=["GET"])
@@ -65,11 +68,11 @@ def aceitar_pedido(username, pedido_id):
         return redirect(url_for('public.login'))
     
     sucesso = pedido_dao.atribuir_entregador(pedido_id, entregador['id'])
-    
+
     if sucesso:
-        return redirect(url_for('entregador.minhas_entregas', username=username))
+        return redirect(url_for('entregador.area_entregador', username=username, msg="Pedido aceito com sucesso", tab="minhas"))
     else:
-        return redirect(url_for('entregador.pedidos_disponiveis', 
+        return redirect(url_for('entregador.area_entregador',
                               username=username,
                               msg="Pedido não está mais disponível"))
 
@@ -84,7 +87,7 @@ def minhas_entregas(username):
                              msg="Entregador não encontrado!",
                              tipo='entregador')
     
-    entregas_ativas = pedido_dao.buscar_por_entregador(entregador['id'], status='em_entrega')
+    entregas_ativas = pedido_dao.buscar_por_entregador(entregador['id'], status='com_entregador')
     pedidos_disponiveis = pedido_dao.buscar_disponiveis()
     
     return render_template('dashboard.html',
@@ -104,14 +107,22 @@ def atualizar_status(username, pedido_id):
 @entregador_bp.route("/area/<username>", methods=['GET'])
 def area_entregador(username):
     """Dashboard principal do entregador"""
+    msg = request.args.get('msg')
     entregador = entregador_dao.buscar_por_username(username)
-    
+
     if not entregador:
-        return render_template('login.html', 
-                             msg="Entregador não encontrado!",
-                             tipo='entregador')
-    
-    return render_template('area_entregador.html', entregador=entregador)
+        return render_template('login.html',
+                              msg="Entregador não encontrado!",
+                              tipo='entregador')
+
+    pedidos_disponiveis = pedido_dao.buscar_disponiveis()
+    entregas_ativas = pedido_dao.buscar_por_entregador(entregador['id'], status='com_entregador')
+
+    return render_template('area_entregador.html',
+                           entregador=entregador,
+                           pedidos_disponiveis=pedidos_disponiveis,
+                           entregas_ativas=entregas_ativas,
+                           msg=msg)
 
 
 @entregador_bp.route("/tracar-rota/<username>/<int:pedido_id>", methods=['GET'])
@@ -232,3 +243,81 @@ def historico_entregas(username):
                          tem_mais_entregas=len(entregas_concluidas) > 20,
                          periodo=periodo,
                          stats=stats)
+
+
+@entregador_bp.route("/deletar_conta/<username>", methods=['POST'])
+def deletar_conta_entregador(username):
+    # Verifica se está logado como entregador
+    if "entregador_username" not in session or session["entregador_username"] != username:
+        abort(403)
+
+    # Busca o entregador
+    entregador = entregador_dao.buscar_por_username(username)
+    if not entregador:
+        abort(404)
+
+    # Verifica senha
+    senha = request.form.get('senha')
+    if entregador['password'] != senha:
+        return redirect(url_for('entregador.area_entregador', username=username, msg="Senha incorreta. Tente novamente."))
+
+    # Deleta o entregador da tabela entregadores
+    entregador_dao.remover(entregador['id'])
+
+    # Deleta o usuário da tabela usuarios
+    usuario_dao.remover(entregador['usuario_id'])
+
+    session.clear()
+    return redirect(url_for("public.login"))
+
+
+@entregador_bp.route("/perfil/<username>", methods=['GET'])
+def perfil_entregador(username):
+    # Verifica se está logado como entregador
+    if "entregador_username" not in session or session["entregador_username"] != username:
+        abort(403)
+
+    # Busca o entregador
+    entregador = entregador_dao.buscar_por_username(username)
+    if not entregador:
+        abort(404)
+
+    # Busca informações do restaurante
+    restaurante_dict = None
+    if entregador.get('restaurante_id'):
+        restaurante = restaurante_dao.procurar_um(entregador['restaurante_id'])
+        if restaurante:
+            restaurante_dict = {
+                "id": restaurante[0],
+                "nome": restaurante[1],
+                "email": restaurante[4],
+                "telefone": restaurante[3],
+                "cnpj": restaurante[5],
+                "codigo_unico": restaurante[7]
+            }
+
+    return render_template('perfil_entregador.html', entregador=entregador, restaurante=restaurante_dict)
+
+
+@entregador_bp.route("/atualizar_status/<username>", methods=['POST'])
+def atualizar_status_entregador(username):
+    # Verifica se está logado como entregador
+    if "entregador_username" not in session or session["entregador_username"] != username:
+        abort(403)
+
+    novo_status = request.form.get('status')
+    if novo_status not in ['ativo', 'disponível', 'em rota', 'off-line']:
+        return redirect(url_for('entregador.perfil_entregador', username=username, msg="Status inválido"))
+
+    # Busca o entregador
+    entregador = entregador_dao.buscar_por_username(username)
+    if not entregador:
+        abort(404)
+
+    # Atualiza o status
+    sucesso = entregador_dao.atualizar_status(entregador['id'], novo_status)
+
+    if sucesso:
+        return redirect(url_for('entregador.area_entregador', username=username, msg="Status atualizado com sucesso"))
+    else:
+        return redirect(url_for('entregador.area_entregador', username=username, msg="Erro ao atualizar status"))

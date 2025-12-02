@@ -1,4 +1,5 @@
 import sqlite3
+import time
 
 class RestauranteDAO:
     def __init__(self, db_path='app/database/app.db'):
@@ -29,14 +30,26 @@ class RestauranteDAO:
         conn.close()
 
     def inserir(self, restaurante):
-        conn = self._conectar()
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO restaurantes (nome, endereco, telefone, CNPJ, email, nome_responsavel, codigo_unico)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (restaurante.nome, restaurante.endereco, restaurante.telefone, restaurante.CNPJ, restaurante.email, restaurante.nome_responsavel, restaurante.codigo_unico))
-        conn.commit()
-        conn.close()
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                conn = self._conectar()
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO restaurantes (nome, endereco, telefone, CNPJ, email, nome_responsavel, codigo_unico)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (restaurante.nome, restaurante.endereco, restaurante.telefone, restaurante.CNPJ, restaurante.email, restaurante.nome_responsavel, restaurante.codigo_unico))
+                conn.commit()
+                restaurante_id = cursor.lastrowid
+                conn.close()
+                return restaurante_id
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e) and attempt < max_retries - 1:
+                    time.sleep(0.1 * (2 ** attempt))  # Exponential backoff
+                    continue
+                else:
+                    conn.close()
+                    raise e
 
     def remover(self, id_restaurante):
         conn = self._conectar()

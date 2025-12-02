@@ -66,9 +66,10 @@ def autenticar():
         entregador = entregador_dao.buscar_por_username(username)
 
         # Verifica se o entregador existe e se a senha está correta
-        if entregador and entregador.password == password:
-            # Autenticação bem-sucedida - redireciona para área do entregador
-            return redirect(url_for('entregador.listar_entregadores'))
+        if entregador and entregador['password'] == password:
+            # Autenticação bem-sucedida - armazena sessão e redireciona para área do entregador
+            session['entregador_username'] = username
+            return redirect(url_for('entregador.area_entregador', username=username))
         else:
             # Credenciais inválidas - volta ao login com mensagem de erro
             return render_template('login.html',
@@ -80,6 +81,13 @@ def autenticar():
 
         # Verifica se o usuário existe e se a senha está correta
         if usuario and usuario[5] == password:
+            # Verifica se o usuário é um entregador - se sim, não permite login como usuário
+            entregador_check = entregador_dao.buscar_por_username(username)
+            if entregador_check:
+                return render_template('login.html',
+                                      msg="Você deve fazer login como entregador",
+                                      tipo=tipo)
+
             # Autenticação bem-sucedida - redireciona para área do usuário
             session['user_id'] = usuario[0]
             return redirect(url_for('perfil.perfil_usuario', id_usuario=usuario[0]))
@@ -87,8 +95,8 @@ def autenticar():
         else:
             # Credenciais inválidas - volta ao login com mensagem de erro
             return render_template('login.html',
-                                 msg="Usuário ou senha inválidos",
-                                 tipo=tipo)
+                                  msg="Usuário ou senha inválidos",
+                                  tipo=tipo)
 
 
 # ==================== ROTA: LOGOUT ====================

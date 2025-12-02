@@ -11,37 +11,48 @@ class PedidoDAO:
         return conn
 
     def _criar_tabela(self):
+        print("DEBUG: Starting _criar_tabela for pedidos")
         conn = self._conectar()
         cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS pedidos (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                cliente_id INTEGER NOT NULL,
-                restaurante_id INTEGER NOT NULL,
-                endereco_id INTEGER NOT NULL,
-                entregador_id INTEGER,
-                preco_total REAL NOT NULL,
-                forma_pagamento TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'pendente',
-                data TEXT,
-                data_atribuicao DATETIME,
-                data_entrega DATETIME,
-                FOREIGN KEY (cliente_id) REFERENCES usuarios(id),
-                FOREIGN KEY (restaurante_id) REFERENCES restaurantes(id),
-                FOREIGN KEY (endereco_id) REFERENCES enderecos(id),
-                FOREIGN KEY (entregador_id) REFERENCES entregadores(id)
-            );
-        """)
+        print("DEBUG: Creating table pedidos if not exists")
+        try:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS pedidos (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    cliente_nome TEXT NOT NULL,
+                    restaurante_id INTEGER NOT NULL,
+                    endereco TEXT NOT NULL,
+                    entregador_id INTEGER,
+                    preco_total REAL NOT NULL,
+                    forma_pagamento TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'pendente',
+                    data TEXT,
+                    data_atribuicao DATETIME,
+                    data_entrega DATETIME
+                );
+            """)
+            # Add pratos_ids column if not exists
+            print("DEBUG: Attempting to add pratos_ids column")
+            try:
+                cursor.execute("ALTER TABLE pedidos ADD COLUMN pratos_ids TEXT;")
+                print("DEBUG: Added pratos_ids column")
+            except sqlite3.OperationalError as e:
+                print(f"DEBUG: pratos_ids column already exists or error: {e}")
+            print("DEBUG: Table pedidos ensured")
+        except Exception as e:
+            print(f"DEBUG: Error creating table pedidos: {e}")
+            raise
         conn.commit()
         conn.close()
+        print("DEBUG: _criar_tabela completed")
 
     def inserir(self, pedido):
         conn = self._conectar()
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO pedidos (cliente_id, restaurante_id, endereco_id, preco_total, forma_pagamento, status, data)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (pedido.cliente_id, pedido.restaurante_id, pedido.endereco_id, pedido.preco_total, pedido.forma_pagamento, pedido.status, pedido.data))
+            INSERT INTO pedidos (cliente_nome, restaurante_id, endereco, preco_total, forma_pagamento, status, data, pratos_ids)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (pedido.cliente_nome, pedido.restaurante_id, pedido.endereco, pedido.preco_total, pedido.forma_pagamento, pedido.status, pedido.data, getattr(pedido, 'pratos_ids', None)))
         conn.commit()
         conn.close()
 
@@ -67,10 +78,12 @@ class PedidoDAO:
 
     def procurar_todos(self, id_restaurante):
         """Busca todos os pedidos de um restaurante"""
+        print(f"DEBUG: Procurando pedidos para restaurante_id: {id_restaurante}")
         conn = self._conectar()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM pedidos WHERE restaurante_id=?", (id_restaurante,))
         dados = cursor.fetchall()
+        print(f"DEBUG: Pedidos encontrados: {len(dados)} - {dados}")
         conn.close()
         return dados
 
@@ -78,20 +91,19 @@ class PedidoDAO:
     def buscar_disponiveis(self):
         """
         Retorna pedidos disponíveis para entregadores aceitarem.
-        Critérios: sem entregador + status 'aguardando_entregador'
+        Critérios: sem entregador + status 'aguardando_entregador' ou 'confirmado'
         """
         conn = self._conectar()
         cursor = conn.cursor()
+        cursor.execute("ATTACH DATABASE 'app/database/app.db' AS app")
         cursor.execute("""
-            SELECT p.*, 
-                   u.nome as cliente_nome, 
-                   e.logradouro as endereco_entrega,
-                   r.nome as restaurante_nome
+            SELECT p.*,
+                    p.cliente_nome,
+                    p.endereco as endereco_entrega,
+                    r.nome as restaurante_nome
             FROM pedidos p
-            JOIN usuarios u ON p.cliente_id = u.id
-            JOIN enderecos e ON p.endereco_id = e.id
-            JOIN restaurantes r ON p.restaurante_id = r.id
-            WHERE p.entregador_id IS NULL 
+            JOIN app.restaurantes r ON p.restaurante_id = r.id
+            WHERE p.entregador_id IS NULL
             AND p.status IN ('aguardando_entregador', 'confirmado')
             ORDER BY p.data ASC
         """)
@@ -120,9 +132,9 @@ class PedidoDAO:
         
         # Atribui o entregador
         cursor.execute("""
-            UPDATE pedidos 
-            SET entregador_id = ?, 
-                status = 'em_entrega',
+            UPDATE pedidos
+            SET entregador_id = ?,
+                status = 'com_entregador',
                 data_atribuicao = datetime('now')
             WHERE id = ? AND entregador_id IS NULL
         """, (entregador_id, pedido_id))
@@ -141,36 +153,34 @@ class PedidoDAO:
         cursor = conn.cursor()
         
         if status:
+            cursor.execute("ATTACH DATABASE 'app/database/app.db' AS app")
             cursor.execute("""
                 SELECT p.*,
-                       u.nome as cliente_nome,
-                       u.telefone as cliente_telefone,
-                       e.logradouro as endereco_entrega,
-                       e.numero as endereco_numero,
-                       e.bairro as endereco_bairro,
+                       p.cliente_nome,
+                       '' as cliente_telefone,
+                       p.endereco as endereco_entrega,
+                       '' as endereco_numero,
+                       '' as endereco_cidade,
                        r.nome as restaurante_nome,
                        r.telefone as restaurante_telefone
                 FROM pedidos p
-                JOIN usuarios u ON p.cliente_id = u.id
-                JOIN enderecos e ON p.endereco_id = e.id
-                JOIN restaurantes r ON p.restaurante_id = r.id
+                JOIN app.restaurantes r ON p.restaurante_id = r.id
                 WHERE p.entregador_id = ? AND p.status = ?
                 ORDER BY p.data DESC
             """, (entregador_id, status))
         else:
+            cursor.execute("ATTACH DATABASE 'app/database/app.db' AS app")
             cursor.execute("""
                 SELECT p.*,
-                       u.nome as cliente_nome,
-                       u.telefone as cliente_telefone,
-                       e.logradouro as endereco_entrega,
-                       e.numero as endereco_numero,
-                       e.bairro as endereco_bairro,
+                       p.cliente_nome,
+                       '' as cliente_telefone,
+                       p.endereco as endereco_entrega,
+                       '' as endereco_numero,
+                       '' as endereco_cidade,
                        r.nome as restaurante_nome,
                        r.telefone as restaurante_telefone
                 FROM pedidos p
-                JOIN usuarios u ON p.cliente_id = u.id
-                JOIN enderecos e ON p.endereco_id = e.id
-                JOIN restaurantes r ON p.restaurante_id = r.id
+                JOIN app.restaurantes r ON p.restaurante_id = r.id
                 WHERE p.entregador_id = ?
                 ORDER BY p.data DESC
             """, (entregador_id,))
@@ -183,7 +193,7 @@ class PedidoDAO:
         """
         Atualiza o status de um pedido.
         Status possíveis: 'pendente', 'confirmado', 'aguardando_entregador',
-                         'em_entrega', 'coletado', 'a_caminho', 'entregue', 'cancelado'
+                          'com_entregador', 'em_entrega', 'coletado', 'a_caminho', 'entregue', 'cancelado'
         """
         conn = self._conectar()
         cursor = conn.cursor()

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, redirect, url_for
-from .models.Pedido import Pedido
+from .models.pedido import Pedido
 from .dao.PedidoDAO import PedidoDAO
 import sqlite3
 
@@ -24,7 +24,7 @@ def novo_pedido():
 # Visualizar informações de um pedido
 @pedido_bp.route("/pedido/<int:numero>", methods=["GET"])
 def visualizar_pedido(numero):
-    conn = sqlite3.connect("pedidos.db")
+    conn = sqlite3.connect("app/database/app.db")
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM pedidos WHERE numero = ?", (numero,))
@@ -37,7 +37,7 @@ def visualizar_pedido(numero):
 # Listar apenas pedidos não concluídos
 @pedido_bp.route("/pedidos/ativos", methods=["GET"])
 def pedidos_ativos():
-    conn = sqlite3.connect("pedidos.db")
+    conn = sqlite3.connect("app/database/app.db")
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM pedidos WHERE status != 'entregue'")
@@ -50,7 +50,7 @@ def pedidos_ativos():
 # Listar todos os pedidos
 @pedido_bp.route("/listar_pedidos", methods=["GET"])
 def listar_pedidos():
-    conn = sqlite3.connect("pedidos.db")
+    conn = sqlite3.connect("app/database/app.db")
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM pedidos")
