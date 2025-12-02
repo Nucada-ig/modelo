@@ -1,5 +1,3 @@
-#como ficaria a questão de representar o entregador também como o usuário? por que no código vai ter que repetir os atributos do usuário na parte do entregador
-
 """
 routes_public.py
 Rotas públicas acessíveis a qualquer visitante do site (não requerem autenticação).
