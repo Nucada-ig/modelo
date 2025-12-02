@@ -1,25 +1,234 @@
-from flask import Blueprint, jsonify
+"""
+routes_entregador.py
+Rotas relacionadas aos entregadores.
+"""
+
+from flask import Blueprint, request, render_template, redirect, url_for, jsonify
+from app.dao.EntregadorDAO import EntregadorDAO
+from app.dao.PedidoDAO import PedidoDAO
 import sqlite3
 
 entregador_bp = Blueprint("entregadores", __name__)
+# Cria o blueprint
+entregador_bp = Blueprint('entregador', __name__)
 
-# Buscar entregador específico
-@entregador_bp.route("/entregador/<int:id>", methods=["GET"])
-def ver_entregador(id):
-    conn = sqlite3.connect("entregadores.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM entregadores WHERE id = ?", (id,))
-    dados = cursor.fetchone()
-    conn.close()
-    return jsonify(dados), 200
+# Instancia os DAOs
+entregador_dao = EntregadorDAO()
+pedido_dao = PedidoDAO()
 
 
-# Listar todos
-@entregador_bp.route("/entregadores", methods=["GET"])
-def listar_entregadores():
-    conn = sqlite3.connect("entregadores.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM entregadores")
-    dados = cursor.fetchall()
-    conn.close()
-    return jsonify(dados), 200
+@entregador_bp.route("/api/entregador/<int:id>", methods=["GET"])
+def ver_entregador_api(id):
+    """
+    API: Retorna dados de um entregador específico em JSON.
+    Útil para dashboards administrativos ou integrações.
+    """
+    entregador = entregador_dao.procurar_por_id(id)
+    if entregador:
+        return jsonify(entregador), 200
+    return jsonify({"error": "Entregador não encontrado"}), 404
+
+
+@entregador_bp.route("/api/entregadores", methods=["GET"])
+def listar_entregadores_api():
+    """
+    API: Lista todos os entregadores em JSON.
+    Útil para dashboards administrativos ou relatórios.
+    """
+    entregadores = entregador_dao.procurar_todos()
+    return jsonify(entregadores), 200
+
+
+@entregador_bp.route("/pedidos-disponiveis/<username>", methods=['GET'])
+def pedidos_disponiveis(username):
+    """Página com pedidos disponíveis para o entregador aceitar"""
+    entregador = entregador_dao.buscar_por_username(username)
+    
+    if not entregador:
+        return render_template('login.html', 
+                             msg="Entregador não encontrado!",
+                             tipo='entregador')
+    
+    pedidos = pedido_dao.buscar_disponiveis()
+    
+    return render_template('pedidos_disponiveis.html', 
+                         entregador=entregador,
+                         pedidos=pedidos)
+
+
+@entregador_bp.route("/aceitar-pedido/<username>/<int:pedido_id>", methods=['POST'])
+def aceitar_pedido(username, pedido_id):
+    """Processa quando um entregador aceita um pedido"""
+    entregador = entregador_dao.buscar_por_username(username)
+    
+    if not entregador:
+        return redirect(url_for('public.login'))
+    
+    sucesso = pedido_dao.atribuir_entregador(pedido_id, entregador['id'])
+    
+    if sucesso:
+        return redirect(url_for('entregador.minhas_entregas', username=username))
+    else:
+        return redirect(url_for('entregador.pedidos_disponiveis', 
+                              username=username,
+                              msg="Pedido não está mais disponível"))
+
+
+@entregador_bp.route("/minhas-entregas/<username>", methods=['GET'])
+def minhas_entregas(username):
+    """Página com entregas ativas e concluídas do entregador"""
+    entregador = entregador_dao.buscar_por_username(username)
+    
+    if not entregador:
+        return render_template('login.html', 
+                             msg="Entregador não encontrado!",
+                             tipo='entregador')
+    
+    entregas_ativas = pedido_dao.buscar_por_entregador(entregador['id'], status='em_entrega')
+    pedidos_disponiveis = pedido_dao.buscar_disponiveis()
+    
+    return render_template('dashboard.html',
+                         entregador=entregador,
+                         entregas_ativas=entregas_ativas,
+                         pedidos_disponiveis=pedidos_disponiveis)
+
+
+@entregador_bp.route("/atualizar-status/<username>/<int:pedido_id>", methods=['POST'])
+def atualizar_status(username, pedido_id):
+    """Atualiza o status de uma entrega"""
+    novo_status = request.form['status']
+    pedido_dao.atualizar_status(pedido_id, novo_status)
+    return redirect(url_for('entregador.minhas_entregas', username=username))
+
+
+@entregador_bp.route("/area/<username>", methods=['GET'])
+def area_entregador(username):
+    """Dashboard principal do entregador"""
+    entregador = entregador_dao.buscar_por_username(username)
+    
+    if not entregador:
+        return render_template('login.html', 
+                             msg="Entregador não encontrado!",
+                             tipo='entregador')
+    
+    return render_template('area_entregador.html', entregador=entregador)
+
+
+@entregador_bp.route("/tracar-rota/<username>/<int:pedido_id>", methods=['GET'])
+def tracar_rota(username, pedido_id):
+    """Exibe o mapa com a rota de entrega"""
+    entregador = entregador_dao.buscar_por_username(username)
+    
+    if not entregador:
+        return render_template('login.html', 
+                             msg="Entregador não encontrado!",
+                             tipo='entregador')
+    
+    pedido = pedido_dao.buscar_por_id(pedido_id)
+    
+    if not pedido:
+        return redirect(url_for('entregador.minhas_entregas', 
+                              username=username,
+                              msg="Pedido não encontrado!"))
+    
+    # Verifica se o pedido pertence a este entregador
+    if pedido['entregador_id'] != entregador['id']:
+        return redirect(url_for('entregador.minhas_entregas', 
+                              username=username,
+                              msg="Este pedido não pertence a você!"))
+    
+    return render_template('entrega_atual.html',
+                         entregador=entregador,
+                         pedido=pedido)
+
+
+@entregador_bp.route("/atualizar-localizacao/<username>", methods=['POST'])
+def atualizar_localizacao(username):
+    """API: Atualiza localização GPS do entregador em tempo real"""
+    try:
+        latitude = request.form.get('latitude')
+        longitude = request.form.get('longitude')
+        
+        if not latitude or not longitude:
+            return jsonify({
+                "status": "error",
+                "message": "Latitude e longitude são obrigatórias"
+            }), 400
+        
+        lat = float(latitude)
+        lng = float(longitude)
+        
+        entregador = entregador_dao.buscar_por_username(username)
+        
+        if not entregador:
+            return jsonify({
+                "status": "error",
+                "message": "Entregador não encontrado"
+            }), 404
+        
+        sucesso = entregador_dao.atualizar_localizacao(entregador['id'], lat, lng)
+        
+        if sucesso:
+            return jsonify({
+                "status": "success",
+                "message": "Localização atualizada com sucesso",
+                "latitude": lat,
+                "longitude": lng
+            }), 200
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "Erro ao atualizar localização"
+            }), 500
+            
+    except ValueError:
+        return jsonify({
+            "status": "error",
+            "message": "Latitude e longitude devem ser números válidos"
+        }), 400
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Erro inesperado: {str(e)}"
+        }), 500
+
+
+@entregador_bp.route("/iniciar-navegacao/<username>/<int:pedido_id>", methods=['POST'])
+def iniciar_navegacao(username, pedido_id):
+    """Registra quando o entregador inicia a navegação"""
+    pedido_dao.atualizar_status(pedido_id, 'em_rota')
+    return redirect(url_for('entregador.tracar_rota', 
+                          username=username, 
+                          pedido_id=pedido_id))
+
+
+@entregador_bp.route("/historico/<username>", methods=['GET'])
+def historico_entregas(username):
+    """Exibe histórico de entregas com filtros"""
+    entregador = entregador_dao.buscar_por_username(username)
+    
+    if not entregador:
+        return render_template('login.html', 
+                             msg="Entregador não encontrado!",
+                             tipo='entregador')
+    
+    periodo = request.args.get('periodo', 'hoje')
+    
+    entregas_concluidas = pedido_dao.buscar_por_entregador(entregador['id'], status='entregue')
+    
+    # Calcular estatísticas
+    stats = {
+        'entregas_hoje': pedido_dao.contar_entregas(entregador['id'], periodo='hoje'),
+        'ganhos_hoje': pedido_dao.calcular_ganhos(entregador['id'], periodo='hoje'),
+        'entregas_semana': pedido_dao.contar_entregas(entregador['id'], periodo='semana'),
+        'ganhos_semana': pedido_dao.calcular_ganhos(entregador['id'], periodo='semana'),
+        'entregas_mes': pedido_dao.contar_entregas(entregador['id'], periodo='mes'),
+        'ganhos_mes': pedido_dao.calcular_ganhos(entregador['id'], periodo='mes'),
+    }
+    
+    return render_template('historico.html',
+                         entregador=entregador,
+                         entregas_concluidas=entregas_concluidas[:20],
+                         tem_mais_entregas=len(entregas_concluidas) > 20,
+                         periodo=periodo,
+                         stats=stats)

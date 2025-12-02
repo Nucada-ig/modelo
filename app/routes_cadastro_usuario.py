@@ -5,8 +5,8 @@ Inclui: formulário de cadastro e processamento do cadastro.
 """
 
 from flask import Blueprint, request, render_template, redirect, url_for
-from app.models.Usuario import Usuario_class as Usuario
-from app.models.Entregador import Entregador
+from app.models.usuario import Usuario_class as Usuario
+from app.models.entregador import Entregador
 from .dao.UsuarioDAO import UsuarioDAO
 from .dao.EntregadorDAO import EntregadorDAO
 from .dao.RestauranteDAO import RestauranteDAO

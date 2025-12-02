@@ -22,6 +22,9 @@ class PratoDAO:
                 preco REAL NOT NULL,
                 categoria TEXT,
                 disponivel INTEGER DEFAULT 1,
+                tempo_preparo INTEGER,
+                destaque INTEGER DEFAULT 0,
+                imagem TEXT,
                 FOREIGN KEY (restaurante_id) REFERENCES restaurantes(id)
             );
         """)
@@ -32,9 +35,9 @@ class PratoDAO:
         conn = self._conectar()
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO pratos (restaurante_id, nome, descricao, preco, categoria, disponivel)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (prato.restaurante_id, prato.nome, prato.descricao, prato.preco, prato.categoria, prato.disponivel))
+            INSERT INTO pratos (restaurante_id, nome, descricao, preco, categoria, disponivel, tempo_preparo, destaque, imagem)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (prato.restaurante_id, prato.nome, prato.descricao, prato.preco, prato.categoria, prato.disponivel, prato.tempo_preparo, prato.destaque, prato.imagem))
         conn.commit()
         conn.close()
 
@@ -42,6 +45,16 @@ class PratoDAO:
         conn = self._conectar()
         cursor = conn.cursor()
         cursor.execute("DELETE FROM pratos WHERE id=?", (id_prato,))
+        conn.commit()
+        conn.close()
+
+    def atualizar_status(self, id_prato, disponivel):
+        """Atualiza disponibilidade do prato"""
+        conn = self._conectar()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE pratos SET disponivel = ? WHERE id = ?
+        """, (disponivel, id_prato))
         conn.commit()
         conn.close()
 

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Prato</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script> window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        accent: '#475569',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>::-webkit-scrollbar { display: none;}</style>
+</head>
+<body class="font-inter bg-gray-50">
+
+<header id="header" class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="flex items-center justify-between px-4 py-3">
+        <a href="{{ url_for('restaurante.cardapio', username=restaurante.username) }}" class="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
+            <i class="fa-solid fa-arrow-left text-gray-600"></i>
+        </a>
+        
+        <div class="text-center">
+            <h1 class="text-lg font-semibold text-gray-900">Adicionar Prato</h1>
+        </div>
+        
+        <div class="w-10"></div>
+    </div>
+</header>
+
+<main id="add-dish-main" class="pb-52">
+    <form id="dish-form" action="{{ url_for('prato.novo_prato') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        
+        <!-- Campo oculto para restaurante_id -->
+        <input type="hidden" name="restaurante_id" value="{{ restaurante.id }}">
+        
+        <div id="image-upload-section" class="px-4 pt-6">
+            <div class="space-y-3">
+                <label class="block text-sm font-medium text-gray-700">
+                    Foto do prato
+                </label>
+                <div id="image-upload-area" class="relative">
+                    <div class="w-full h-48 bg-gray-100 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center mx-auto mb-3 shadow-sm">
+                                <i class="fa-solid fa-camera text-gray-400 text-xl"></i>
+                            </div>
+                            <p class="text-sm font-medium text-gray-600 mb-1">Adicionar foto</p>
+                            <p class="text-xs text-gray-400">Toque para selecionar uma imagem</p>
+                        </div>
+                    </div>
+                    <input type="file" id="dish-image" name="imagem" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                </div>
+            </div>
+        </div>
+
+        <div id="basic-info-section" class="px-4 space-y-6">
+            <div id="dish-name-field" class="space-y-2">
+                <label for="dish-name" class="block text-sm font-medium text-gray-700">
+                    Nome do prato *
+                </label>
+                <input 
+                    type="text" 
+                    id="dish-name" 
+                    name="nome"
+                    class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
+                    placeholder="Ex: Hambúrguer Artesanal"
+                    required
+                >
+            </div>
+
+            <div id="dish-description-field" class="space-y-2">
+                <label for="dish-description" class="block text-sm font-medium text-gray-700">
+                    Descrição *
+                </label>
+                <textarea 
+                    id="dish-description" 
+                    name="descricao"
+                    rows="4"
+                    class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400 resize-none"
+                    placeholder="Descreva os ingredientes e características do prato..."
+                    required
+                ></textarea>
+            </div>
+
+            <div id="price-field" class="space-y-2">
+                <label for="dish-price" class="block text-sm font-medium text-gray-700">
+                    Preço *
+                </label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">R$</span>
+                    <input 
+                        type="number" 
+                        id="dish-price" 
+                        name="preco"
+                        step="0.01"
+                        min="0"
+                        class="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
+                        placeholder="0,00"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div id="category-field" class="space-y-2">
+                <label for="dish-category" class="block text-sm font-medium text-gray-700">
+                    Categoria *
+                </label>
+                <div class="relative">
+                    <select 
+                        id="dish-category" 
+                        name="categoria"
+                        class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 text-gray-900 appearance-none cursor-pointer"
+                        required
+                    >
+                        <option value="">Selecione uma categoria</option>
+                        <option value="hamburguer">Hambúrgueres</option>
+                        <option value="pizza">Pizzas</option>
+                        <option value="bebida">Bebidas</option>
+                        <option value="sobremesa">Sobremesas</option>
+                        <option value="entrada">Entradas</option>
+                        <option value="prato-principal">Pratos Principais</option>
+                        <option value="lanche">Lanches</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="additional-options-section" class="px-4 space-y-6">
+            <div class="border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Opções Adicionais</h3>
+                
+                <div id="availability-toggle" class="flex items-center justify-between py-3">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">Disponível para pedidos</p>
+                        <p class="text-xs text-gray-500">O prato aparecerá no cardápio</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="is-available" name="disponivel" value="1" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+                    </label>
+                </div>
+
+                <div id="featured-toggle" class="flex items-center justify-between py-3">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">Prato em destaque</p>
+                        <p class="text-xs text-gray-500">Aparecerá em posição de destaque</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="is-featured" name="destaque" value="1" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div id="preparation-time-section" class="px-4">
+            <div id="prep-time-field" class="space-y-2">
+                <label for="prep-time" class="block text-sm font-medium text-gray-700">
+                    Tempo de preparo (minutos)
+                </label>
+                <input 
+                    type="number" 
+                    id="prep-time" 
+                    name="tempo_preparo"
+                    min="1"
+                    max="120"
+                    class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
+                    placeholder="Ex: 15"
+                >
+            </div>
+        </div>
+
+        <div id="bottom-actions" class="fixed bottom-[60px] left-0 right-0 bg-white border-t border-gray-200 p-4 space-y-3 z-40">
+            <button 
+                type="submit" 
+                id="save-button"
+                class="w-full bg-accent text-white py-3.5 px-4 rounded-2xl font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 transition-all duration-200"
+            >
+                <i class="fa-solid fa-check mr-2"></i>
+                Salvar Prato
+            </button>
+            
+            <a 
+                href="{{ url_for('restaurante.cardapio', username=restaurante.username) }}"
+                id="cancel-button"
+                class="block w-full bg-gray-100 text-gray-700 py-3.5 px-4 rounded-2xl font-medium hover:bg-gray-200 text-center transition-all duration-200"
+            >
+                Cancelar
+            </a>
+        </div>
+    </form>
+</main>
+
+<nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+    <div class="flex items-center justify-around py-2">
+        <a href="{{ url_for('restaurante.dashboard', username=restaurante.username) }}" class="nav-item flex flex-col items-center py-2 px-4 text-gray-400 hover:text-accent transition-colors">
+            <i class="fa-solid fa-home text-lg mb-1"></i>
+            <span class="text-xs">Início</span>
+        </a>
+        <a href="{{ url_for('restaurante.pedidos', username=restaurante.username) }}" class="nav-item flex flex-col items-center py-2 px-4 text-gray-400 hover:text-accent transition-colors">
+            <i class="fa-solid fa-receipt text-lg mb-1"></i>
+            <span class="text-xs">Pedidos</span>
+        </a>
+        <a href="{{ url_for('restaurante.cardapio', username=restaurante.username) }}" class="nav-item active flex flex-col items-center py-2 px-4 text-accent">
+            <i class="fa-solid fa-utensils text-lg mb-1"></i>
+            <span class="text-xs font-medium">Cardápio</span>
+        </a>
+        <a href="{{ url_for('restaurante.equipe', username=restaurante.username) }}" class="nav-item flex flex-col items-center py-2 px-4 text-gray-400 hover:text-accent transition-colors">
+            <i class="fa-solid fa-users text-lg mb-1"></i>
+            <span class="text-xs">Time</span>
+        </a>
+        <a href="{{ url_for('restaurante.configuracoes', username=restaurante.username) }}" class="nav-item flex flex-col items-center py-2 px-4 text-gray-400 hover:text-accent transition-colors">
+            <i class="fa-solid fa-cog text-lg mb-1"></i>
+            <span class="text-xs">Config</span>
+        </a>
+    </div>
+</nav>
+
+<script>
+document.getElementById('dish-image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const uploadArea = document.getElementById('image-upload-area');
+            uploadArea.innerHTML = `
+                <div class="relative w-full h-48 rounded-2xl overflow-hidden">
+                    <img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover">
+                    <div class="absolute top-3 right-3">
+                        <button type="button" id="remove-image" class="w-8 h-8 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                            <i class="fa-solid fa-times text-white text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('remove-image').addEventListener('click', function() {
+                document.getElementById('dish-image').value = '';
+                uploadArea.innerHTML = `
+                    <div class="w-full h-48 bg-gray-100 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center mx-auto mb-3 shadow-sm">
+                                <i class="fa-solid fa-camera text-gray-400 text-xl"></i>
+                            </div>
+                            <p class="text-sm font-medium text-gray-600 mb-1">Adicionar foto</p>
+                            <p class="text-xs text-gray-400">Toque para selecionar uma imagem</p>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Quando o checkbox está desmarcado, envia valor 0
+document.getElementById('is-available').addEventListener('change', function() {
+    if (!this.checked) {
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'disponivel';
+        hidden.value = '0';
+        hidden.id = 'disponivel-hidden';
+        this.parentNode.appendChild(hidden);
+    } else {
+        const hidden = document.getElementById('disponivel-hidden');
+        if (hidden) hidden.remove();
+    }
+});
+</script>
+
+</body>
+</html>

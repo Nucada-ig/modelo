@@ -65,11 +65,17 @@ class Usuario_class:
         self.__tipo = tipo
 
 class Entregador(Usuario_class):
-    def __init__(self, nome, email, senha, CPF, tipo, veiculo, status):
-        super().__init__(nome, email, senha, CPF, tipo)
+    def __init__(self, usuario_id, nome, email, senha, CPF, telefone, tipo, veiculo, placa, status='ativo'):
+        super().__init__(nome, CPF, email, telefone, None, senha, tipo)
+        self.__usuario_id = usuario_id
         self.__veiculo = veiculo
+        self.__placa = placa
         self.__status = status
 
+    @property
+    def usuario_id(self):
+        return self.__usuario_id
+    
     @property
     def veiculo(self):
         return self.__veiculo
@@ -79,12 +85,20 @@ class Entregador(Usuario_class):
         self.__veiculo = veiculo
 
     @property
+    def placa(self):
+        return self.__placa
+    
+    @placa.setter
+    def placa(self, placa):
+        self.__placa = placa
+
+    @property
     def status(self):
         return self.__status
 
     @status.setter
     def status(self, status):
-        if status in ['disponível', 'em rota', 'off-line', 'voltando']:
+        if status in ['disponível', 'em rota', 'off-line', 'voltando', 'ativo']:
             self.__status = status
         else:
-            raise ValueError("O valor do status deve ser 'disponível', 'em rota', 'off-line' ou 'voltando'.")
+            raise ValueError("Status inválido.")
